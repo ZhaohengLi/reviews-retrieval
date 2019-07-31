@@ -7,7 +7,7 @@ from result import *
 
 def search_for_keywords(shop_id, keyword_list):
     """
-
+    首先获得含有关键词的评论 返回Result的列表
     :param shop_id: (int) This's also the table's name.
     :param keyword_list: (list) A list of keywords.
     :return: (list) A list of 'Result'(Class)s.
@@ -24,13 +24,19 @@ def search_for_keywords(shop_id, keyword_list):
 
 
 def length_process(result_list):
+    """
+    写入评论平均长度
+    :param result_list:
+    :return:
+    """
     assert result_list
     sum_length = 0
     for result in result_list:
         sum_length += result.review_length
     average_length = sum_length/len(result_list)
+
     for result in result_list:
-        result.review_length_average = average_length
+        result.review_length_average = average_length  # 对列表中的Result的唯一写入操作
     return result_list
 
 
@@ -76,6 +82,11 @@ def keywords_process(result_list):
 
 
 def score_process(result_list):
+    """
+    给列表中每一条Result进行最终得分计算
+    :param result_list:
+    :return:
+    """
     assert result_list
     for result in result_list:
         result.set_score()
@@ -83,6 +94,11 @@ def score_process(result_list):
 
 
 def write_results(result_list):
+    """
+    将最终结果写到文件中
+    :param result_list:
+    :return:
+    """
     assert result_list
     keyword_list = result_list[0].keyword_list
     with open('./log.txt', 'w') as file:
