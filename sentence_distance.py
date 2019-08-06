@@ -19,5 +19,3 @@ def vector_similarity(s1, s2):
     v1, v2 = sentence_vector(s1), sentence_vector(s2)
     print(v1, v2)
     return np.dot(v1, v2) / (norm(v1) * norm(v2))
-
-
