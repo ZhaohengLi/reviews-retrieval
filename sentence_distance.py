@@ -14,15 +14,24 @@ def prep_vector():
     return model
 
 
-def vector_similarity(model, s1, s2):
-    def sentence_vector(s):
-        words = jieba.lcut(s)
-        v = np.zeros(64)
-        for word in words:
-            v += model[word]
-        v /= len(words)
-        return v
+def sentence_vector(model, s):
+    words = jieba.lcut(s)
+    v = np.zeros(64)
+    for word in words:
+        v += model[word]
+    v /= len(words)
+    return v
 
-    v1, v2 = sentence_vector(s1), sentence_vector(s2)
-    return np.dot(v1, v2) / (norm(v1) * norm(v2))
 
+def sentences_similarity(model, sentence_list):
+    similarity = 0.0
+    vector_list = []
+
+    for sentence in sentence_list:
+        vector_list.append(sentence_vector(model, sentence))
+
+    for i in range(len(vector_list)):
+        for j in range(i+1, len(vector_list)):
+            similarity += np.dot(vector_list[i], vector_list[j]) / (norm(vector_list[i]) * norm(vector_list[j]))
+
+    similarity /= len(vector_list)*(len(vector_list)-1)/2
