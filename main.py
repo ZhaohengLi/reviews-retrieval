@@ -3,6 +3,7 @@ import re
 import numpy as np
 from operator import attrgetter
 from result import *
+from sentence_distance import *
 
 
 def search_for_keywords(shop_id, keyword_list):
@@ -76,8 +77,23 @@ def keywords_process(result_list):
 
     for result in result_list:
         result.keywords_average = list(keywords_sum/len(result_list))
-        result.set_reference()
 
+    return result_list
+
+
+def reference_process(model, result_list):
+    """
+    为每一条Result设定摘录语句
+    :param result_list:
+    :return:
+    """
+    assert result_list
+    reference_list = []
+    for result in result_list:
+        reference_list.append(result.set_reference())
+    if sentences_similarity(model, reference_list) >= 0.9:
+        for result in result_list:
+            reference_list.append(result.expand_reference())
     return result_list
 
 
@@ -117,6 +133,8 @@ def write_results(result_list):
 
 if __name__ == '__main__':
 
+    model = prep_vector()  # For sentence distance.
+
     shop_list = ['4665606', '66641167', '2743444']
     current_shop = 'QUILT'
     keywords = ['保暖', '效果']
@@ -127,4 +145,6 @@ if __name__ == '__main__':
     results = score_process(results)
 
     results = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
+
+    results = reference_process(model, results)
     write_results(results)

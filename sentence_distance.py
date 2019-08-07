@@ -35,3 +35,4 @@ def sentences_similarity(model, sentence_list):
             similarity += np.dot(vector_list[i], vector_list[j]) / (norm(vector_list[i]) * norm(vector_list[j]))
 
     similarity /= len(vector_list)*(len(vector_list)-1)/2
+    return similarity
