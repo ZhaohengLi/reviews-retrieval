@@ -4,6 +4,7 @@ import numpy as np
 from operator import attrgetter
 from result import *
 from sentence_distance import *
+from snownlp import SnowNLP
 
 
 def search_for_keywords(shop_id, keyword_list):
@@ -126,12 +127,21 @@ def write_results(result_list):
             file.write(keyword + ' ')
         file.write('\nTop ten results are:\n\n')
         for i in result_list:
-            file.write('Total_score: ' + str(i.score) +
-                       '\nCount_score: ' + str(i.count_score) +
-                       '\nDistance_score: ' + str(i.distance_score) +
-                       '\nLength_score: ' + str(i.length_score) + '\n')
+            # file.write('Total_score: ' + str(i.score) +
+            #            '\nCount_score: ' + str(i.count_score) +
+            #            '\nDistance_score: ' + str(i.distance_score) +
+            #            '\nLength_score: ' + str(i.length_score) + '\n')
+            file.write('Sentiment: ' + i.sentiment + '\n')
             file.write('Full: ' + i.review_text + '\n')
             file.write('Cut: ' + i.reference_text + '\n\n')
+
+
+def sentiment_process(result_list):
+    assert result_list
+    for result in result_list:
+        s = SnowNLP(result.reference_text)
+        result.sentiment = s.sentiments
+    return result_list
 
 
 if __name__ == '__main__':
@@ -146,8 +156,7 @@ if __name__ == '__main__':
     results = keywords_process(results)
     results = length_process(results)
     results = score_process(results)
-
-    results = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
-
     results = reference_process(model, results)
+    results = sentiment_process(results)
+    show_list = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
     write_results(results)

@@ -18,7 +18,7 @@ class Result:
         self.reference_interval = []  # 与关键词最相关摘录语句区间(可为空)
         self.reference_text = ''  # 与关键词最相关摘录语句
 
-        self.emotion = 0.0  # 评论原文情感得分
+        self.sentiment = 0.0  # 评论原文情感得分
         self.topic = ''  # 评论原文主题提取
 
         self.count_score = 0.0  # 关键词出现次数得分 (-1.0,1.0)
