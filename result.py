@@ -70,34 +70,48 @@ class Result:
                     break
 
         # 摘录语句区间选取过程-2: 根据review_text进行最终确定
-        for i in range(self.reference_interval[0], 0, -1):
-            if self.review_text[i] in break_symbol or self.keywords_interval[0] - i >= 15:
-                self.reference_interval[0] = i + 1
+        for i in range(self.reference_interval[0], -1, -1):
+            if self.review_text[i] not in break_symbol:
+                self.reference_interval[0] = i
+            else:
                 break
         for i in range(self.reference_interval[1], self.review_length):
-            if self.review_text[i] in break_symbol or i - self.keywords_interval[1] >= 15:
-                self.reference_interval[1] = i
+            if self.review_text[i] not in break_symbol:
+                self.reference_interval[1] = i + 1
+            else:
                 break
 
         # 摘录语句生成
         self.reference_text = self.review_text[self.reference_interval[0]:self.reference_interval[1]]
+        print(self.reference_text)
         return self.reference_text
 
     def expand_reference(self):
         break_symbol = [' ', ',', '，', '.', '。', '!', '！', '?', '？', '#']
 
         # 在原来的reference_interval的基础上，再扩大范围（一个标点）
-        for i in range(self.reference_interval[0], 0, -1):
-            if self.review_text[i] in break_symbol or self.keywords_interval[0] - i >= 15:
-                self.reference_interval[0] = i + 1
+        if self.reference_interval[0]-2 >= 0:
+            self.reference_interval[0] = self.reference_interval[0]-2
+        else:
+            self.reference_interval[0] = 0
+
+        if self.reference_interval[1]+1 <= self.review_length:
+            self.reference_interval[1] = self.reference_interval[1]+1
+
+        for i in range(self.reference_interval[0], -1, -1):
+            if self.review_text[i] not in break_symbol:
+                self.reference_interval[0] = i
+            else:
                 break
         for i in range(self.reference_interval[1], self.review_length):
-            if self.review_text[i] in break_symbol or i - self.keywords_interval[1] >= 15:
-                self.reference_interval[1] = i
+            if self.review_text[i] not in break_symbol:
+                self.reference_interval[1] = i + 1
+            else:
                 break
 
         # 摘录语句更新
         self.reference_text = self.review_text[self.reference_interval[0]:self.reference_interval[1]]
+        print(self.reference_text)
         return self.reference_text
 
     def get_review_info(self):

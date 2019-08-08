@@ -83,7 +83,7 @@ def keywords_process(result_list):
 
 def reference_process(model, result_list):
     """
-    为每一条Result设定摘录语句
+    为每一条Result设定摘录语句,如果语义相关度极高，将进一步拓展摘录语句
     :param result_list:
     :return:
     """
@@ -91,9 +91,12 @@ def reference_process(model, result_list):
     reference_list = []
     for result in result_list:
         reference_list.append(result.set_reference())
-    if sentences_similarity(model, reference_list) >= 0.9:
+    similarity = sentences_similarity(model, reference_list)
+    print("Similarity is " + str(similarity))
+    if similarity >= 0.2:
+        print("Reference expand.")
         for result in result_list:
-            reference_list.append(result.expand_reference())
+            result.expand_reference()
     return result_list
 
 
@@ -117,7 +120,7 @@ def write_results(result_list):
     """
     assert result_list
     keyword_list = result_list[0].keyword_list
-    with open('./log.txt', 'w') as file:
+    with open('./data/log.txt', 'w') as file:
         file.write('Keywords: ')
         for keyword in keyword_list:
             file.write(keyword + ' ')
@@ -137,7 +140,7 @@ if __name__ == '__main__':
 
     shop_list = ['4665606', '66641167', '2743444']
     current_shop = 'QUILT'
-    keywords = ['保暖', '效果']
+    keywords = ['质量']
 
     results = search_for_keywords(current_shop, keywords)
     results = keywords_process(results)

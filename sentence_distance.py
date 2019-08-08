@@ -11,15 +11,19 @@ def prep_vector():
     """
     model_file = './data/news_12g_baidubaike_20g_novel_90g_embedding_64.bin'
     model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
+    print("Model load!")
     return model
 
 
 def sentence_vector(model, s):
     words = jieba.lcut(s)
     v = np.zeros(64)
+    word_count = 0
     for word in words:
-        v += model[word]
-    v /= len(words)
+        if word in model:
+            word_count += 1
+            v += model[word]
+    v /= word_count
     return v
 
 
