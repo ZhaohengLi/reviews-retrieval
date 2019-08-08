@@ -113,7 +113,7 @@ def score_process(result_list):
     return result_list
 
 
-def write_results(result_list):
+def write_results(result_list, filename='log'):
     """
     将最终结果写到文件中
     :param result_list:
@@ -121,7 +121,7 @@ def write_results(result_list):
     """
     assert result_list
     keyword_list = result_list[0].keyword_list
-    with open('./data/log.txt', 'w') as file:
+    with open('./data/'+filename+'.txt', 'w') as file:
         file.write('Keywords: ')
         for keyword in keyword_list:
             file.write(keyword + ' ')
@@ -131,17 +131,28 @@ def write_results(result_list):
             #            '\nCount_score: ' + str(i.count_score) +
             #            '\nDistance_score: ' + str(i.distance_score) +
             #            '\nLength_score: ' + str(i.length_score) + '\n')
-            file.write('Sentiment: ' + i.sentiment + '\n')
+            file.write('Sentiment: ' + str(i.sentiment) + '\n')
             file.write('Full: ' + i.review_text + '\n')
             file.write('Cut: ' + i.reference_text + '\n\n')
 
 
 def sentiment_process(result_list):
     assert result_list
+    sentiment_all = 0.0
     for result in result_list:
         s = SnowNLP(result.reference_text)
         result.sentiment = s.sentiments
-    return result_list
+        sentiment_all += s.sentiments
+    sentiment_all /= len(result_list)
+    neg_result_list = []
+    pos_result_list = []
+    for result in result_list:
+        result.sentiment_average = sentiment_all
+        if result.sentiment < 0.4:
+            neg_result_list.append(result)
+        else:
+            pos_result_list.append(result)
+    return result_list, pos_result_list, neg_result_list
 
 
 if __name__ == '__main__':
@@ -157,6 +168,8 @@ if __name__ == '__main__':
     results = length_process(results)
     results = score_process(results)
     results = reference_process(model, results)
-    results = sentiment_process(results)
+    results, pos_results, neg_results = sentiment_process(results)
     show_list = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
-    write_results(results)
+    neg_results = sorted(neg_results, key=attrgetter('sentiment'), reverse=False)
+    write_results(show_list, 'show_list')
+    write_results(neg_results, 'neg_list')
