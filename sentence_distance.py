@@ -28,6 +28,8 @@ def sentence_vector(model, s):
 
 
 def sentences_similarity(model, sentence_list):
+    assert sentence_list
+    # print("In sentences_similarity(model, sentence_list) len(sentence_list) is "+str(len(sentence_list)))
     similarity = 0.0
     vector_list = []
 
@@ -38,5 +40,7 @@ def sentences_similarity(model, sentence_list):
         for j in range(i+1, len(vector_list)):
             similarity += np.dot(vector_list[i], vector_list[j]) / (norm(vector_list[i]) * norm(vector_list[j]))
 
+    if len(sentence_list) == 1:
+        return similarity
     similarity /= len(vector_list)*(len(vector_list)-1)/2
     return similarity
