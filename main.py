@@ -21,7 +21,6 @@ def search_for_keywords(shop_id, keyword_list):
             if i in review:
                 result_list.append(Result(review, keyword_list))
                 break
-    assert result_list
     return result_list
 
 
@@ -85,6 +84,7 @@ def keywords_process(result_list):
 def reference_process(model, result_list):
     """
     为每一条Result设定摘录语句,如果语义相关度极高，将进一步拓展摘录语句
+    :param model:
     :param result_list:
     :return:
     """
@@ -93,9 +93,9 @@ def reference_process(model, result_list):
     for result in result_list:
         reference_list.append(result.set_reference())
     similarity = sentences_similarity(model, reference_list)
-    print("Similarity is " + str(similarity))
-    if similarity >= 0.2:
-        print("Reference expand.")
+    write_info("Similarity is " + str(similarity)+'\n', log_file_name)
+    if similarity >= 0.65:
+        write_info("Reference expand.\n", log_file_name)
         for result in result_list:
             result.expand_reference()
     return result_list
@@ -113,19 +113,17 @@ def score_process(result_list):
     return result_list
 
 
-def write_results(result_list, filename='log'):
+def write_results(result_list, filename='log', mode='w'):
     """
     将最终结果写到文件中
     :param result_list:
+    :param filename:
+    :param mode:
     :return:
     """
     assert result_list
-    keyword_list = result_list[0].keyword_list
-    with open('./data/'+filename+'.txt', 'w') as file:
-        file.write('Keywords: ')
-        for keyword in keyword_list:
-            file.write(keyword + ' ')
-        file.write('\nTop ten results are:\n\n')
+    with open('./data/'+filename+'.txt', mode) as file:
+        file.write('\nTop '+str(len(result_list))+' results are:\n\n')
         for i in result_list:
             # file.write('Total_score: ' + str(i.score) +
             #            '\nCount_score: ' + str(i.count_score) +
@@ -134,6 +132,11 @@ def write_results(result_list, filename='log'):
             file.write('Sentiment: ' + str(i.sentiment) + '\n')
             file.write('Full: ' + i.review_text + '\n')
             file.write('Cut: ' + i.reference_text + '\n\n')
+
+
+def write_info(info='\n', filename='log', mode='a'):
+    with open('./data/'+filename+'.txt', mode) as file:
+        file.write(info)
 
 
 def sentiment_process(result_list):
@@ -155,21 +158,33 @@ def sentiment_process(result_list):
     return result_list, pos_result_list, neg_result_list
 
 
-if __name__ == '__main__':
-
-    model = prep_vector()  # For sentence distance.
-
-    shop_list = ['4665606', '66641167', '2743444']
-    current_shop = 'QUILT'
-    keywords = ['质量']
-
-    results = search_for_keywords(current_shop, keywords)
+def generate(current_item, keywords):
+    results = search_for_keywords(current_item, keywords)
+    if not results:
+        write_info("No related results!", log_file_name)
+        return
     results = keywords_process(results)
     results = length_process(results)
     results = score_process(results)
-    results = reference_process(model, results)
+    results = reference_process(vector_model, results)
     results, pos_results, neg_results = sentiment_process(results)
-    show_list = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
-    neg_results = sorted(neg_results, key=attrgetter('sentiment'), reverse=False)
-    write_results(show_list, 'show_list')
-    write_results(neg_results, 'neg_list')
+    show_list = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:12]
+    # neg_results = sorted(neg_results, key=attrgetter('sentiment'), reverse=False)
+    write_results(show_list, log_file_name, 'a')
+    # write_results(neg_results, 'neg_list_' + current_item + 'keywords: ' + str(keywords))
+
+
+if __name__ == '__main__':
+
+    vector_model = prep_vector()  # For sentence distance.
+
+    # item_list = ['1694588451', '1214322183']
+    item_list = ['44794700281', '44982816890', '45050097562']  # 三款裙子
+
+    keywords_list = [['颜色'], ['质量'], ['款式'], ['长短'], ['腰线'], ['合身'], ['款式', '长短'], ['合身', '款式'], ['腰线', '合身']]
+    for item in item_list:
+        for keywords in keywords_list:
+            log_file_name = 'show_list_' + item + '_keywords_' + str(keywords)
+            print(log_file_name)
+            write_info('Keywords: ' + str(keywords), log_file_name, 'w')
+            generate(item, keywords)

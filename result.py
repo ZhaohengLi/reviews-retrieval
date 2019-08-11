@@ -84,7 +84,6 @@ class Result:
 
         # 摘录语句生成
         self.reference_text = self.review_text[self.reference_interval[0]:self.reference_interval[1]]
-        print(self.reference_text)
         return self.reference_text
 
     def expand_reference(self):
@@ -112,7 +111,6 @@ class Result:
 
         # 摘录语句更新
         self.reference_text = self.review_text[self.reference_interval[0]:self.reference_interval[1]]
-        print(self.reference_text)
         return self.reference_text
 
     def get_review_info(self):
