@@ -1,27 +1,31 @@
 from reviews import *
 import re
-import numpy as np
+import os
 from operator import attrgetter
 from result import *
 from sentence_distance import *
 from snownlp import SnowNLP
+from tools import *
+import collections
 
 
-def search_for_keywords(shop_id, keyword_list):
+def search_for_keywords(item_id, category, keyword_list):
     """
     首先获得含有关键词的评论 返回Result的列表
     :param shop_id: (int) This's also the table's name.
     :param keyword_list: (list) A list of keywords.
     :return: (list) A list of 'Result'(Class)s.
     """
-    review_list = get_review_text(shop_id)  # 从数据库中获取评论文本
+    review_list = get_review(item_id, category)  # 从数据库中获取评论文本
     result_list = []
+    review_text_linked_together = ''
     for review in review_list:
         for i in keyword_list:
-            if i in review:
-                result_list.append(Result(review, keyword_list))
+            if i in review[1]:
+                result_list.append(Result(review[1], keyword_list, review[0], review[2]))
+                review_text_linked_together += review[1]
                 break
-    return result_list
+    return result_list, review_text_linked_together
 
 
 def length_process(result_list):
@@ -92,10 +96,11 @@ def reference_process(model, result_list):
     reference_list = []
     for result in result_list:
         reference_list.append(result.set_reference())
-    similarity = sentences_similarity(model, reference_list)
-    write_info("Similarity is " + str(similarity)+'\n', log_file_name)
+    # todo
+    # similarity = sentences_similarity(model, reference_list)
+    similarity = 0.5
     if similarity >= 0.65:
-        write_info("Reference expand.\n", log_file_name)
+        write_info("Reference expand.\n", file_path+'/extra.txt')
         for result in result_list:
             result.expand_reference()
     return result_list
@@ -111,32 +116,6 @@ def score_process(result_list):
     for result in result_list:
         result.set_score()
     return result_list
-
-
-def write_results(result_list, filename='log', mode='w'):
-    """
-    将最终结果写到文件中
-    :param result_list:
-    :param filename:
-    :param mode:
-    :return:
-    """
-    assert result_list
-    with open('./data/'+filename+'.txt', mode) as file:
-        file.write('\nTop '+str(len(result_list))+' results are:\n\n')
-        for i in result_list:
-            # file.write('Total_score: ' + str(i.score) +
-            #            '\nCount_score: ' + str(i.count_score) +
-            #            '\nDistance_score: ' + str(i.distance_score) +
-            #            '\nLength_score: ' + str(i.length_score) + '\n')
-            file.write('Sentiment: ' + str(i.sentiment) + '\n')
-            file.write('Full: ' + i.review_text + '\n')
-            file.write('Cut: ' + i.reference_text + '\n\n')
-
-
-def write_info(info='\n', filename='log', mode='a'):
-    with open('./data/'+filename+'.txt', mode) as file:
-        file.write(info)
 
 
 def sentiment_process(result_list):
@@ -158,47 +137,109 @@ def sentiment_process(result_list):
     return result_list, pos_result_list, neg_result_list
 
 
-def generate(current_item, keywords):
-    results = search_for_keywords(current_item, keywords)
+def topic_process(result_list):
+    assert result_list
+    for result in result_list:
+        s = SnowNLP(result.review_text)
+        result.topic = s.keywords()
+    return result_list
+
+
+def word_counts_process(text):
+    text = clean_text(text)
+    word_list = remove_stopwords(text)
+    word_counts = collections.Counter(word_list)
+    word_counts_top10 = word_counts.most_common(10)
+    write_info(str(word_counts_top10), file_path+'/word_counts.txt')
+
+
+def search_keywords(results, keywords):
+    temp = []
+    for result in results:
+        for keyword in keywords:
+            if keyword in result.review_text:
+                temp.append(Result(result.review_text, keywords, result.star, result.category))
+                break
+    return temp
+
+
+def generate(current_item, category, keywords, results=[]):
+    if len(results) == 0:
+        results, review_text_linked_together = search_for_keywords(current_item, category, keywords)
+        if not results:
+            write_info("No related results!", file_path + '/EmptyResult.txt')
+            print("无搜索结果")
+            return []
+        word_counts_process(review_text_linked_together)
+
+    results = search_keywords(results, keywords)
     if not results:
-        write_info("No related results!", log_file_name)
-        return
+        write_info("No related results!", file_path + '/EmptyResult.txt')
+        print("无搜索结果")
+        return []
+
+    write_info('Size of results: '+str(len(results)), file_path + '/Find' + str(len(results)) + 'Results.txt')
+    print("找到"+str(len(results))+"条搜索结果")
     results = keywords_process(results)
     results = length_process(results)
     results = score_process(results)
     results = reference_process(vector_model, results)
+    results = topic_process(results)
     results, pos_results, neg_results = sentiment_process(results)
-    show_list = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:12]
-    # neg_results = sorted(neg_results, key=attrgetter('sentiment'), reverse=False)
-    write_results(show_list, log_file_name, 'a')
-    # write_results(neg_results, 'neg_list_' + current_item + 'keywords: ' + str(keywords))
+
+    normal_results = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:12]
+    neg_results = sorted(neg_results, key=attrgetter('star'), reverse=False)
+
+    write_results(normal_results, file_path+'/normal.txt')
+    write_results(neg_results, file_path+'/negative.txt')
+    write_results(results, file_path+'/all.txt')
+    return results
 
 
 if __name__ == '__main__':
+    print("程序正在载入 请稍后")
+    # vector_model = prep_vector()  # For sentence distance.
+    vector_model = ''
+    print("已载入程序")
 
-    vector_model = prep_vector()  # For sentence distance.
-
-    # # item_list = ['1694588451', '1214322183']
-    # item_list = ['44794700281', '44982816890', '45050097562']  # 三款裙子
-    # final_test_list = []
-    #
-    # keywords_list = [['颜色'], ['质量'], ['款式'], ['长短'], ['腰线'], ['合身'], ['款式', '长短'], ['合身', '款式'], ['腰线', '合身']]
-    # for item in item_list:
-    #     for keywords in keywords_list:
-    #         log_file_name = 'show_list_' + item + '_keywords_' + str(keywords)
-    #         print(log_file_name)
-    #         write_info('Keywords: ' + str(keywords), log_file_name, 'w')
-    #         generate(item, keywords)
-
-    while(True):
-        file_name = input("请输入解析文件名：")
-        if file_name == 'end':
-            break;
+    while True:
+        file_name = input("是否开始全新的搜索 文件名/no\n")
+        if file_name == 'no':
+            break
         else:
+            last_results = []
+            item = ''
+            category = ''
+            keywords = []
             with open('./input/'+file_name, 'r') as file:
-                item = str(file.readline())
+                item = str(file.readline().strip())
+                category = str(file.readline().strip())
                 keywords = file.readline().split()
-                log_file_name = 'show_list_' + item + '_keywords_' + str(keywords)
-                print(log_file_name)
-                write_info('Keywords: ' + str(keywords), log_file_name, 'w')
-                generate(item, keywords)
+
+            file_path = os.path.abspath('./output')
+            file_path = os.path.join(file_path, item)
+            if not os.path.exists(file_path):
+                os.mkdir(file_path)
+
+            if category == '':
+                file_path = os.path.join(file_path, str(keywords))
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
+            else:
+                file_path = os.path.join(file_path, str(category) + "-" + str(keywords))
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
+
+            print('Now processing: ' + item + ' with category: ' + category + ' with keywords: ' + str(keywords))
+            last_results = generate(item, category, keywords)
+            while True:
+                ans = input("是否进一步搜索 keywords/no\n")
+                if ans == 'no':
+                    break
+                keywords = ans.split()
+                file_path = os.path.join(file_path, str(keywords))
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
+                last_results = generate(item, category, keywords, last_results)
+
+    print("程序正在退出")

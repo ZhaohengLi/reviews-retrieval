@@ -3,7 +3,7 @@ from tools import *
 
 
 class Result:
-    def __init__(self, _review_text, _keyword_list):
+    def __init__(self, _review_text, _keyword_list, star, category):
         self.review_text = _review_text  # 评论原文
         self.review_length = len(self.review_text)  # 评论原文长度
         self.review_length_average = 0.0  # 评论原文平均长度
@@ -20,13 +20,16 @@ class Result:
 
         self.sentiment = 0.0  # 摘录语句情感得分
         self.sentiment_average = 0.0  # 摘录语句平均情感得分
-        self.topic = ''  # 评论原文主题提取
+        self.topic = []  # 评论原文主题提取
 
         self.count_score = 0.0  # 关键词出现次数得分 (-1.0,1.0)
         self.distance_score = 0.0  # 关键词最短距离得分 [0.0, 1.0]
         self.length_score = 0.0  # 评论原文长度得分 (0.0, 1.0)
 
         self.score = 0.0  # 总评分数
+
+        self.star = star
+        self.category = category
 
     def set_score(self):
         """
