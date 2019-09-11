@@ -178,13 +178,27 @@ if __name__ == '__main__':
 
     vector_model = prep_vector()  # For sentence distance.
 
-    # item_list = ['1694588451', '1214322183']
-    item_list = ['44794700281', '44982816890', '45050097562']  # 三款裙子
+    # # item_list = ['1694588451', '1214322183']
+    # item_list = ['44794700281', '44982816890', '45050097562']  # 三款裙子
+    # final_test_list = []
+    #
+    # keywords_list = [['颜色'], ['质量'], ['款式'], ['长短'], ['腰线'], ['合身'], ['款式', '长短'], ['合身', '款式'], ['腰线', '合身']]
+    # for item in item_list:
+    #     for keywords in keywords_list:
+    #         log_file_name = 'show_list_' + item + '_keywords_' + str(keywords)
+    #         print(log_file_name)
+    #         write_info('Keywords: ' + str(keywords), log_file_name, 'w')
+    #         generate(item, keywords)
 
-    keywords_list = [['颜色'], ['质量'], ['款式'], ['长短'], ['腰线'], ['合身'], ['款式', '长短'], ['合身', '款式'], ['腰线', '合身']]
-    for item in item_list:
-        for keywords in keywords_list:
-            log_file_name = 'show_list_' + item + '_keywords_' + str(keywords)
-            print(log_file_name)
-            write_info('Keywords: ' + str(keywords), log_file_name, 'w')
-            generate(item, keywords)
+    while(True):
+        file_name = input("请输入解析文件名：")
+        if file_name == 'end':
+            break;
+        else:
+            with open('./input/'+file_name, 'r') as file:
+                item = str(file.readline())
+                keywords = file.readline().split()
+                log_file_name = 'show_list_' + item + '_keywords_' + str(keywords)
+                print(log_file_name)
+                write_info('Keywords: ' + str(keywords), log_file_name, 'w')
+                generate(item, keywords)
