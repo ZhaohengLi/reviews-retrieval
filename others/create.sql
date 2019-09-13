@@ -1,0 +1,22 @@
+CREATE TABLE `100004092848`(
+   primary_id INTEGER  NOT NULL PRIMARY KEY 
+  ,会员     VARCHAR(100)
+  ,级别     VARCHAR(100)
+  ,评价星级   VARCHAR(100)
+  ,review_text   VARCHAR(500) NOT NULL
+  ,时间     VARCHAR(100)
+  ,点赞数    INTEGER
+  ,评论数    INTEGER
+  ,追评时间   VARCHAR(100)
+  ,追评内容   VARCHAR(500)
+  ,category   VARCHAR(100)
+  ,页面网址   VARCHAR(100)
+  ,页面标题   VARCHAR(200)
+  ,采集时间   VARCHAR(100)
+);
+LOAD DATA INFILE '/Users/lizhaoheng/Desktop/100004092848错误.csv' 
+INTO TABLE `100004092848`
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;

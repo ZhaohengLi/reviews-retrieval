@@ -54,7 +54,7 @@ class Result:
         根据最短相邻关键词距离起始终止区间生成与关键词最相关摘录语句
         :return:
         """
-        break_symbol = [' ', ',', '，', '.', '。', '!', '！', '?', '？', '#']
+        break_symbol = [' ', ',', '，', '.', '。', '!', '！', '?', '？', '#', ';', '；']
 
         # 摘录语句区间选取过程-1: 根据keywords_interval进行初步确定
         if self.keywords_interval:
@@ -90,7 +90,7 @@ class Result:
         return self.reference_text
 
     def expand_reference(self):
-        break_symbol = [' ', ',', '，', '.', '。', '!', '！', '?', '？', '#']
+        break_symbol = [' ', ',', '，', '.', '。', '!', '！', '?', '？', '#', ';', '；']
 
         # 在原来的reference_interval的基础上，再扩大范围（一个标点）
         if self.reference_interval[0]-2 >= 0:

@@ -97,8 +97,8 @@ def reference_process(model, result_list):
     for result in result_list:
         reference_list.append(result.set_reference())
     # todo
-    # similarity = sentences_similarity(model, reference_list)
-    similarity = 0.5
+    similarity = sentences_similarity(model, reference_list)
+    write_info("Similarity is "+str(similarity), file_path+'/similarity'+str(similarity)+'.txt')
     if similarity >= 0.65:
         write_info("Reference expand.\n", file_path+'/extra.txt')
         for result in result_list:
@@ -153,6 +153,14 @@ def word_counts_process(text):
     write_info(str(word_counts_top10), file_path+'/word_counts.txt')
 
 
+def all_word_counts_process(text):
+    text = clean_text(text)
+    word_list = remove_stopwords(text)
+    word_counts = collections.Counter(word_list)
+    word_counts_top10 = word_counts.most_common(10)
+    write_info(str(word_counts_top10), file_path + '/all_word_counts.txt')
+
+
 def search_keywords(results, keywords):
     temp = []
     for result in results:
@@ -187,7 +195,7 @@ def generate(current_item, category, keywords, results=[]):
     results = topic_process(results)
     results, pos_results, neg_results = sentiment_process(results)
 
-    normal_results = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:12]
+    normal_results = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
     neg_results = sorted(neg_results, key=attrgetter('star'), reverse=False)
 
     write_results(normal_results, file_path+'/normal.txt')
@@ -196,14 +204,30 @@ def generate(current_item, category, keywords, results=[]):
     return results
 
 
+def init_process(item_id):
+    review_list = get_review(str(item_id), '')
+    text = ''
+    for review in review_list:
+        text += review[1]
+    all_word_counts_process(text)
+
+
 if __name__ == '__main__':
     print("程序正在载入 请稍后")
-    # vector_model = prep_vector()  # For sentence distance.
-    vector_model = ''
+    vector_model = prep_vector()  # For sentence distance.
+    # vector_model = ''
     print("已载入程序")
 
     while True:
-        file_name = input("是否开始全新的搜索 文件名/no\n")
+        file_name = input("是否开始全新的搜索 init/文件名/no\n")
+        if file_name == 'init':
+            item = input('输入商品ID\n')
+            file_path = os.path.abspath('./output')
+            file_path = os.path.join(file_path, item)
+            if not os.path.exists(file_path):
+                os.mkdir(file_path)
+            init_process(item)
+            continue
         if file_name == 'no':
             break
         else:

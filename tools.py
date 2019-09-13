@@ -31,6 +31,7 @@ def write_results(result_list, file_name):
             file.write('Full:\n' + i.review_text + '\n')
             file.write('Sentiment:' + str(i.sentiment) + '\n')
             file.write('Star: ' + str(i.star) + '\n')
+            file.write('Topic: ' + str(i.topic) + '\n')
             file.write('Category: ' + str(i.category) + '\n\n\n')
 
 

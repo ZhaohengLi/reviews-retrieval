@@ -1,6 +1,7 @@
 import gensim
 import jieba
 import numpy as np
+import sys
 from scipy.linalg import norm
 
 
@@ -30,17 +31,19 @@ def sentence_vector(model, s):
 def sentences_similarity(model, sentence_list):
     assert sentence_list
     # print("In sentences_similarity(model, sentence_list) len(sentence_list) is "+str(len(sentence_list)))
-    similarity = 0.0
-    vector_list = []
+    similarity = 0.5
+    try:
+        vector_list = []
+        for sentence in sentence_list:
+            vector_list.append(sentence_vector(model, sentence))
 
-    for sentence in sentence_list:
-        vector_list.append(sentence_vector(model, sentence))
+        for i in range(len(vector_list)):
+            for j in range(i + 1, len(vector_list)):
+                similarity += np.dot(vector_list[i], vector_list[j]) / (norm(vector_list[i]) * norm(vector_list[j]))
 
-    for i in range(len(vector_list)):
-        for j in range(i+1, len(vector_list)):
-            similarity += np.dot(vector_list[i], vector_list[j]) / (norm(vector_list[i]) * norm(vector_list[j]))
-
-    if len(sentence_list) == 1:
-        return similarity
-    similarity /= len(vector_list)*(len(vector_list)-1)/2
+        if len(sentence_list) == 1:
+            return similarity
+        similarity /= len(vector_list) * (len(vector_list) - 1) / 2
+    except:
+        print(sys.exc_info())
     return similarity
