@@ -171,7 +171,7 @@ def search_keywords(results, keywords):
     return temp
 
 
-def generate(current_item, category, keywords, results=[]):
+def generate(current_item, category, keywords,  star='', results=[]):
     if len(results) == 0:
         results, review_text_linked_together = search_for_keywords(current_item, category, keywords)
         if not results:
@@ -196,12 +196,24 @@ def generate(current_item, category, keywords, results=[]):
     results, pos_results, neg_results = sentiment_process(results)
 
     normal_results = sorted(results, key=attrgetter('score', 'count_score', 'distance_score'), reverse=True)[:10]
-    neg_results = sorted(neg_results, key=attrgetter('star'), reverse=False)
+    neg_results = sorted(neg_results, key=attrgetter('star', 'sentiment'), reverse=False)
+
+    if not star == '':
+        star_results = star_process(results, star)
+        write_results(star_results, file_path+'/star.txt')
 
     write_results(normal_results, file_path+'/normal.txt')
     write_results(neg_results, file_path+'/negative.txt')
     write_results(results, file_path+'/all.txt')
     return results
+
+
+def star_process(results, star):
+    star_results = []
+    for result in results:
+        if result.star == int(star):
+            star_results.append(result)
+    return star_results
 
 
 def init_process(item_id):
@@ -242,6 +254,7 @@ if __name__ == '__main__':
                 item = str(file.readline().strip())
                 category = str(file.readline().strip())
                 keywords = file.readline().split()
+                star = str(file.readline().strip())
 
             file_path = os.path.abspath('./output')
             file_path = os.path.join(file_path, item)
@@ -258,7 +271,7 @@ if __name__ == '__main__':
                     os.mkdir(file_path)
 
             print('Now processing: ' + item + ' with category: ' + category + ' with keywords: ' + str(keywords))
-            last_results = generate(item, category, keywords)
+            last_results = generate(item, category, keywords, star)
             while True:
                 ans = input("是否进一步搜索 keywords/no\n")
                 if ans == 'no':
@@ -267,6 +280,6 @@ if __name__ == '__main__':
                 file_path = os.path.join(file_path, str(keywords))
                 if not os.path.exists(file_path):
                     os.mkdir(file_path)
-                last_results = generate(item, category, keywords, last_results)
+                last_results = generate(item, category, keywords, '', last_results)
 
     print("程序正在退出")
