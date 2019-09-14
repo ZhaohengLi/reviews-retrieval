@@ -207,9 +207,12 @@ def generate(current_item, category, keywords, results=[]):
 def init_process(item_id):
     review_list = get_review(str(item_id), '')
     text = ''
+    star = [0, 0, 0, 0, 0]
     for review in review_list:
         text += review[1]
+        star[int(review[0])-1] += 1
     all_word_counts_process(text)
+    write_info(str(star), file_path+'/star.txt')
 
 
 if __name__ == '__main__':
