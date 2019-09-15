@@ -27,12 +27,12 @@ def write_results(result_list, file_name):
             #            '\nCount_score: ' + str(i.count_score) +
             #            '\nDistance_score: ' + str(i.distance_score) +
             #            '\nLength_score: ' + str(i.length_score) + '\n')
-            file.write('Cut:\n' + i.reference_text + '\n')
-            file.write('Full:\n' + i.review_text + '\n')
-            file.write('Sentiment:' + str(i.sentiment) + '\n')
-            file.write('Star: ' + str(i.star) + '\n')
-            file.write('Topic: ' + str(i.topic) + '\n')
-            file.write('Category: ' + str(i.category) + '\n\n\n')
+            file.write('节选:\n' + i.reference_text + '\n')
+            file.write('全部评论:\n' + i.review_text + '\n')
+            file.write('星级: ' + str(i.star) + '\n')
+            # file.write('Topic: ' + str(i.topic) + '\n')
+            file.write('分类: ' + str(i.category) + '\n')
+            file.write('Sentiment:' + str(i.sentiment) + '\n\n\n')
 
 
 def write_info(info, file_name):

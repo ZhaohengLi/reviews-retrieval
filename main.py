@@ -150,7 +150,7 @@ def word_counts_process(text):
     word_list = remove_stopwords(text)
     word_counts = collections.Counter(word_list)
     word_counts_top10 = word_counts.most_common(10)
-    write_info(str(word_counts_top10), file_path+'/word_counts.txt')
+    write_info('在有关你的提问的评论中，以下关键词出现频率较高：'+str(word_counts_top10), file_path+'/word_counts.txt')
 
 
 def all_word_counts_process(text):
@@ -158,7 +158,7 @@ def all_word_counts_process(text):
     word_list = remove_stopwords(text)
     word_counts = collections.Counter(word_list)
     word_counts_top10 = word_counts.most_common(10)
-    write_info(str(word_counts_top10), file_path + '/all_word_counts.txt')
+    write_info('在用户对该商品的所有评价中，以下关键词出现频率较高'+str(word_counts_top10), file_path + '/all_word_counts.txt')
 
 
 def search_keywords(results, keywords):
@@ -224,7 +224,7 @@ def init_process(item_id):
         text += review[1]
         star[int(review[0])-1] += 1
     all_word_counts_process(text)
-    write_info(str(star), file_path+'/star.txt')
+    write_info('星级统计为：'+str(star), file_path+'/star.txt')
 
 
 if __name__ == '__main__':
@@ -246,40 +246,43 @@ if __name__ == '__main__':
         if file_name == 'no':
             break
         else:
-            last_results = []
-            item = ''
-            category = ''
-            keywords = []
-            with open('./input/'+file_name, 'r') as file:
-                item = str(file.readline().strip())
-                category = str(file.readline().strip())
-                keywords = file.readline().split()
-                star = str(file.readline().strip())
+            try:
+                last_results = []
+                item = ''
+                category = ''
+                keywords = []
+                with open('./input/' + file_name, 'r') as file:
+                    item = str(file.readline().strip())
+                    category = str(file.readline().strip())
+                    keywords = file.readline().split()
+                    star = str(file.readline().strip())
 
-            file_path = os.path.abspath('./output')
-            file_path = os.path.join(file_path, item)
-            if not os.path.exists(file_path):
-                os.mkdir(file_path)
-
-            if category == '':
-                file_path = os.path.join(file_path, str(keywords))
-                if not os.path.exists(file_path):
-                    os.mkdir(file_path)
-            else:
-                file_path = os.path.join(file_path, str(category) + "-" + str(keywords))
+                file_path = os.path.abspath('./output')
+                file_path = os.path.join(file_path, item)
                 if not os.path.exists(file_path):
                     os.mkdir(file_path)
 
-            print('Now processing: ' + item + ' with category: ' + category + ' with keywords: ' + str(keywords))
-            last_results = generate(item, category, keywords, star)
-            while True:
-                ans = input("是否进一步搜索 keywords/no\n")
-                if ans == 'no':
-                    break
-                keywords = ans.split()
-                file_path = os.path.join(file_path, str(keywords))
-                if not os.path.exists(file_path):
-                    os.mkdir(file_path)
-                last_results = generate(item, category, keywords, '', last_results)
+                if category == '':
+                    file_path = os.path.join(file_path, str(keywords))
+                    if not os.path.exists(file_path):
+                        os.mkdir(file_path)
+                else:
+                    file_path = os.path.join(file_path, str(category) + "-" + str(keywords))
+                    if not os.path.exists(file_path):
+                        os.mkdir(file_path)
 
+                print('Now processing: ' + item + ' with category: ' + category + ' with keywords: ' + str(keywords))
+                last_results = generate(item, category, keywords, star)
+                while True:
+                    ans = input("是否进一步搜索 keywords/no\n")
+                    if ans == 'no':
+                        break
+                    keywords = ans.split()
+                    file_path = os.path.join(file_path, str(keywords))
+                    if not os.path.exists(file_path):
+                        os.mkdir(file_path)
+                    last_results = generate(item, category, keywords, '', last_results)
+            except:
+                print(sys.exc_info())
+                continue
     print("程序正在退出")
